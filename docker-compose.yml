@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: epsi-scikit-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: epsi_scikit
+      POSTGRES_USER: epsi
+      POSTGRES_PASSWORD: epsi
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

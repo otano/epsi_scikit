@@ -6,5 +6,8 @@ dist/
 wheels/
 *.egg-info
 
+# Generated model artifacts
+*.joblib
+
 # Virtual environments
 .venv
