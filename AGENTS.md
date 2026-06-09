@@ -25,12 +25,12 @@ ML/data-science playground (EPSI school project). Simple scikit-learn pipeline o
 | `/api/health` | GET | Health check |
 | `/api/dbhealth` | GET | PostgreSQL connection check |
 | `/predict/` | POST | Régression — prédit l'indice `grav` (R² ≈ 0.01) |
-| `/predict-severity/` | POST | Classification — `léger` / `grave` / `mortel` (acc. 65%) |
+| `/predict-severity/` | POST | Classification — `léger` / `grave` / `mortel` (acc. 72%) |
 | `/cluster/` | POST | Clustering — typologie d'accident (2 profils) |
 
 Tous les endpoints POST attendent 11 features numériques : `org`, `dep`, `com`, `lat`, `long`, `catr`, `voie`, `v1`, `pr1`, `typenumero`, `distancemetre`.
 
-`/cluster/` n'utilise que 4 features : `lat`, `long`, `catr`, `distancemetre`.
+`/predict-severity/` et `/cluster/` n'utilisent que 4 features : `lat`, `long`, `catr`, `distancemetre`.
 
 ## PostgreSQL (Docker)
 
@@ -43,6 +43,5 @@ Tous les endpoints POST attendent 11 features numériques : `org`, `dep`, `com`,
 
 - `main.py` trains 3 models: RandomForestRegressor, RandomForestClassifier (séverité), KMeans (clustering). Use `uv run python main.py` to retrain.
 - No tests, no CI, no linting/formatting/typecheck config. `pyproject.toml` has only project metadata and deps.
-- Repo has zero commits — no history to search.
 - `.venv/` is gitignored. Activate with `source .venv/bin/activate` or use `uv run`.
 - Python 3.13 required (see `.python-version`).

@@ -114,14 +114,20 @@ if __name__ == "__main__":
     reg = train_regressor(X_train, y_train)
     evaluate(reg, X_test, y_test)
 
-    # --- Classifier ---
-    print("\n--- Classifier (prédire sévérité) ---")
-    y_classes = np.array([severity_class(v) for v in y])
-    yc_train, yc_test = train_test_split(
-        y_classes, test_size=0.2, random_state=42
+    # --- Classifier (on only 4 features: lat, long, catr, distancemetre) ---
+    print("\n--- Classifier (prédire sévérité, 4 features) ---")
+    df_clf = df.dropna(subset=[TARGET])
+    df_clf = df_clf[(df_clf["lat"].abs() < 1e6) & (df_clf["long"].abs() < 1e6)]
+    clf_imputer = SimpleImputer(strategy="median")
+    X_clf_raw = clf_imputer.fit_transform(df_clf[CLUSTER_FEATURES])
+    clf_scaler = StandardScaler()
+    X_clf = clf_scaler.fit_transform(X_clf_raw)
+    y_classes = np.array([severity_class(v) for v in df_clf[TARGET]])
+    Xc_train, Xc_test, yc_train, yc_test = train_test_split(
+        X_clf, y_classes, test_size=0.2, random_state=42
     )
-    clf = train_classifier(X_train, yc_train)
-    pred_classes = clf.predict(X_test)
+    clf = train_classifier(Xc_train, yc_train)
+    pred_classes = clf.predict(Xc_test)
     acc = accuracy_score(yc_test, pred_classes)
     print(f"  Accuracy: {acc:.3f}")
     print(classification_report(yc_test, pred_classes, target_names=SEVERITY_LABELS))
@@ -152,4 +158,6 @@ if __name__ == "__main__":
     joblib.dump(imputer, "imputer.joblib")
     joblib.dump(cluster_imputer, "cluster_imputer.joblib")
     joblib.dump(cluster_scaler, "cluster_scaler.joblib")
-    print("\nSaved: model.joblib, classifier.joblib, kmeans.joblib, scaler.joblib, imputer.joblib, cluster_imputer.joblib, cluster_scaler.joblib")
+    joblib.dump(clf_imputer, "clf_imputer.joblib")
+    joblib.dump(clf_scaler, "clf_scaler.joblib")
+    print("\nSaved: model.joblib, classifier.joblib, kmeans.joblib, scaler.joblib, imputer.joblib, cluster_imputer.joblib, cluster_scaler.joblib, clf_imputer.joblib, clf_scaler.joblib")

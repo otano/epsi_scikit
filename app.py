@@ -45,6 +45,8 @@ cluster_imputer = joblib.load("cluster_imputer.joblib")
 cluster_scaler = joblib.load("cluster_scaler.joblib")
 scaler = joblib.load("scaler.joblib")
 imputer = joblib.load("imputer.joblib")
+clf_imputer = joblib.load("clf_imputer.joblib")
+clf_scaler = joblib.load("clf_scaler.joblib")
 
 FEATURE_COLS = [
     "org",
@@ -64,8 +66,8 @@ SEVERITY_LABELS = ["léger", "grave", "mortel"]
 CLUSTER_FEATURES = ["lat", "long", "catr", "distancemetre"]
 
 CLUSTER_DESCRIPTIONS = {
-    0: "Réseau secondaire — routes départementales/communales (catr ≥ 3)",
-    1: "Grand axe — autoroutes et routes nationales (catr ≤ 2)",
+    0: "Réseau local — routes départementales et communales, trafic modéré",
+    1: "Grand axe — autoroutes et routes nationales, trafic rapide",
 }
 
 
@@ -166,12 +168,14 @@ clf_output = api.model(
 
 @clf_ns.route("/")
 class Classify(Resource):
-    @clf_ns.expect(input_model)
+    @clf_ns.expect(cluster_input_model)
     @clf_ns.marshal_with(clf_output)
     def post(self):
         data = api.payload
-        X = features_from_payload(data)
-        X_prepared = prepare(X)
+        X = pd.DataFrame(
+            [[data[col] for col in CLUSTER_FEATURES]], columns=CLUSTER_FEATURES
+        )
+        X_prepared = clf_scaler.transform(clf_imputer.transform(X))
         probs = classifier.predict_proba(X_prepared)[0]
         label = classifier.predict(X_prepared)[0]
         return {
