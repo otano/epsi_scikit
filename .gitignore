@@ -15,3 +15,5 @@ wheels/
 # ai
 AGENTS.md 
 
+# mac
+.DS_Store
