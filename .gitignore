@@ -6,7 +6,7 @@ dist/
 wheels/
 *.egg-info
 
-# Generated model artifacts
+# Generated model artifacts (too large for git — use vercel CLI to deploy)
 *.joblib
 
 # Virtual environments

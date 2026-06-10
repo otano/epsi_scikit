@@ -35,18 +35,28 @@ db_config = {
 
 
 def get_db_connection():
-    return psycopg2.connect(**db_config)
+    try:
+        return psycopg2.connect(**db_config)
+    except Exception:
+        return None
 
 
-regressor = joblib.load("model.joblib")
-classifier = joblib.load("classifier.joblib")
-kmeans = joblib.load("kmeans.joblib")
-cluster_imputer = joblib.load("cluster_imputer.joblib")
-cluster_scaler = joblib.load("cluster_scaler.joblib")
-scaler = joblib.load("scaler.joblib")
-imputer = joblib.load("imputer.joblib")
-clf_imputer = joblib.load("clf_imputer.joblib")
-clf_scaler = joblib.load("clf_scaler.joblib")
+def _load_or_none(path):
+    try:
+        return joblib.load(path)
+    except Exception:
+        return None
+
+
+regressor = _load_or_none("model.joblib")
+classifier = _load_or_none("classifier.joblib")
+kmeans = _load_or_none("kmeans.joblib")
+cluster_imputer = _load_or_none("cluster_imputer.joblib")
+cluster_scaler = _load_or_none("cluster_scaler.joblib")
+scaler = _load_or_none("scaler.joblib")
+imputer = _load_or_none("imputer.joblib")
+clf_imputer = _load_or_none("clf_imputer.joblib")
+clf_scaler = _load_or_none("clf_scaler.joblib")
 
 FEATURE_COLS = [
     "org",
@@ -101,8 +111,10 @@ class Health(Resource):
 @health_ns.route("/dbhealth")
 class DbHealth(Resource):
     def get(self):
+        conn = get_db_connection()
+        if conn is None:
+            return {"status": "error", "message": "Database not available (DB_HOST not set or unreachable)"}
         try:
-            conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("SELECT version();")
             pg_version = cur.fetchone()[0]

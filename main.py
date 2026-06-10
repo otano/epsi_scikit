@@ -72,13 +72,19 @@ def split_datasets(X, y):
 
 
 def train_regressor(X_train, y_train):
-    model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    model = RandomForestRegressor(
+        n_estimators=10, max_depth=15, min_samples_leaf=10,
+        random_state=42, n_jobs=-1,
+    )
     model.fit(X_train, y_train)
     return model
 
 
 def train_classifier(X_train, y_train_classes):
-    clf = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    clf = RandomForestClassifier(
+        n_estimators=100, max_depth=15, min_samples_leaf=5,
+        random_state=42, n_jobs=-1,
+    )
     clf.fit(X_train, y_train_classes)
     return clf
 
