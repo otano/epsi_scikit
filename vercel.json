@@ -1,12 +1,9 @@
 {
   "functions": {
-    "api/**/*.py": {
+    "app.py": {
       "memory": 512,
       "maxDuration": 10,
       "includeFiles": "*.joblib"
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
-  ]
+  }
 }
