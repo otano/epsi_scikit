@@ -4,7 +4,6 @@ import warnings
 warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 import joblib
-import numpy as np
 import pandas as pd
 import psycopg2
 from flask import Flask
@@ -48,29 +47,12 @@ def _load_or_none(path):
         return None
 
 
-regressor = _load_or_none("model.joblib")
 classifier = _load_or_none("classifier.joblib")
 kmeans = _load_or_none("kmeans.joblib")
 cluster_imputer = _load_or_none("cluster_imputer.joblib")
 cluster_scaler = _load_or_none("cluster_scaler.joblib")
-scaler = _load_or_none("scaler.joblib")
-imputer = _load_or_none("imputer.joblib")
 clf_imputer = _load_or_none("clf_imputer.joblib")
 clf_scaler = _load_or_none("clf_scaler.joblib")
-
-FEATURE_COLS = [
-    "org",
-    "dep",
-    "com",
-    "lat",
-    "long",
-    "catr",
-    "voie",
-    "v1",
-    "pr1",
-    "typenumero",
-    "distancemetre",
-]
 
 SEVERITY_LABELS = ["léger", "grave", "mortel"]
 CLUSTER_FEATURES = ["lat", "long", "catr", "distancemetre"]
@@ -79,16 +61,6 @@ CLUSTER_DESCRIPTIONS = {
     0: "Réseau local — routes départementales et communales, trafic modéré",
     1: "Grand axe — autoroutes et routes nationales, trafic rapide",
 }
-
-
-def features_from_payload(payload):
-    return pd.DataFrame(
-        [[payload[col] for col in FEATURE_COLS]], columns=FEATURE_COLS
-    )
-
-
-def prepare(features_df):
-    return scaler.transform(imputer.transform(features_df))
 
 
 @app.route("/")
@@ -125,40 +97,10 @@ class DbHealth(Resource):
             return {"status": "error", "message": str(e)}
 
 
-# --- Input models ---
-input_model = api.model(
-    "Features",
-    {col: fields.Float(description=col, required=True) for col in FEATURE_COLS},
-)
-
 cluster_input_model = api.model(
     "ClusterFeatures",
     {col: fields.Float(description=col, required=True) for col in CLUSTER_FEATURES},
 )
-
-# --- Regressor ---
-reg_ns = api.namespace("predict", description="Régression de la gravité")
-
-reg_output = api.model(
-    "RegressorOutput",
-    {
-        "gravite": fields.Float(description="Indice de gravité prédit", example=11.67),
-        "features": fields.Raw(description="Caractéristiques fournies"),
-    },
-)
-
-
-@reg_ns.route("/")
-class Predict(Resource):
-    @reg_ns.expect(input_model)
-    @reg_ns.marshal_with(reg_output)
-    def post(self):
-        data = api.payload
-        X = features_from_payload(data)
-        X_prepared = prepare(X)
-        pred = regressor.predict(X_prepared)[0]
-        return {"gravite": float(pred), "features": data}
-
 
 # --- Classifier ---
 clf_ns = api.namespace("predict-severity", description="Classification de la sévérité")
